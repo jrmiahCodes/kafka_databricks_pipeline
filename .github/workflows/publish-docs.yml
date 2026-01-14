@@ -5,6 +5,9 @@ on:
     branches:
       - main # Or your default branch, e.g., master
 
+permissions:
+    contents: write
+   
 jobs:
   build-and-deploy-docs:
     runs-on: ubuntu-latest
