@@ -35,7 +35,8 @@ jobs:
 
       - name: Install dbt
         run: |
-          pip install dbt-core dbt-duckdb # Add any other adapters your project needs for parsing
+          pip install -r requirements.txt
+        # Add any other adapters your project needs for parsing
 
       - name: Generate dbt docs
         run: dbt docs generate
