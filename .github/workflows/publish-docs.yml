@@ -38,6 +38,9 @@ jobs:
           pip install -r requirements.txt
         # Add any other adapters your project needs for parsing
 
+      - name: Install dbt packages
+        run: dbt deps
+
       - name: Generate dbt docs
         run: dbt docs generate
 
