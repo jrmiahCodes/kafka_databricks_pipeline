@@ -17,7 +17,7 @@ jobs:
       # It creates a temporary profiles.yml for dbt docs generate to use
       - name: Set up dbt profile
         run: |
-          echo "default:" > profiles.yml
+          echo "twitch_chat_pipeline:" > profiles.yml
           echo "  target: dev" >> profiles.yml
           echo "  outputs:" >> profiles.yml
           echo "    dev:" >> profiles.yml
