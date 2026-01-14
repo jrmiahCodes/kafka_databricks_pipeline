@@ -1,13 +1,7 @@
-{{ config(
-    materialized = 'table'
-) }}
+
 
 select
-    {{ dbt_utils.generate_surrogate_key([
-        'topic',
-        'partition',
-        'offset'
-    ]) }} as message_id,
+    md5(cast(coalesce(cast(topic as TEXT), '_dbt_utils_surrogate_key_null_') || '-' || coalesce(cast(partition as TEXT), '_dbt_utils_surrogate_key_null_') || '-' || coalesce(cast(offset as TEXT), '_dbt_utils_surrogate_key_null_') as TEXT)) as message_id,
 
     topic,
     partition,
@@ -40,4 +34,4 @@ select
     kafka_timestamp,
     ingest_ts
 
-from {{ source('silver', 'twitch_chat_parsed') }}
+from "workspace"."twitch_pipeline_silver"."twitch_chat_parsed"

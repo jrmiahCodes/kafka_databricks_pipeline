@@ -1,13 +1,11 @@
-{{ config(
-    materialized = 'table'
-) }}
+
 
 with base as (
     select
         topic,
         date(kafka_timestamp) as message_date,
         sent_compound
-    from {{ ref('fct_chat_messages') }}
+    from "memory"."main"."fct_chat_messages"
 )
 
 select

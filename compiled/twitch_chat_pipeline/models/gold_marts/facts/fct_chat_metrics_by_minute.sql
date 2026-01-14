@@ -1,4 +1,4 @@
-{{ config(materialized = 'table') }}
+
 
 select
     date_trunc('minute', kafka_timestamp) as minute,
@@ -20,5 +20,5 @@ select
     sum(case when is_emote_only then 1 else 0 end) as emote_only_messages,
     avg(message_length) as avg_message_length
 
-from {{ source('silver', 'twitch_chat_parsed') }}
+from "workspace"."twitch_pipeline_silver"."twitch_chat_parsed"
 group by 1
