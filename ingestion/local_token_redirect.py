@@ -2,9 +2,10 @@ import http.server
 import socketserver
 import webbrowser
 import urllib.parse
+import os
 
 PORT = 3000
-CLIENT_ID = "f0v29slxfdsmj4y7ukzojcv9avyszf"
+CLIENT_ID = os.getenv("CLIENT_ID")  # Replace with your actual Client ID
 REDIRECT_URI = f"http://localhost:{PORT}"
 SCOPES = "chat:read+chat:edit"
 
