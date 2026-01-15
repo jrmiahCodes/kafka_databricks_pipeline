@@ -4,4 +4,4 @@ dbt_packages/
 logs/
 .vscode/
 */.env
-*/.pyspark
+*/*.pyspark
