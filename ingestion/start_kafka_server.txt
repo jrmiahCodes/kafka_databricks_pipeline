@@ -1,0 +1,15 @@
+bin/windows/kafka-server-start.bat config/server.properties
+
+bin/windows/connect-standalone.bat config/connect-standalone.properties plugins/snowflake-kafka-connector-3.3.0/snowflake_sink_twitch.json
+
+#format folder:
+bin\windows\kafka-storage.bat format -t "$KAFKA_CLUSTER_ID" -c config\server.properties
+
+bin\windows\kafka-storage.bat format --standalone -t "$KAFKA_CLUSTER_ID" -c config\server.properties
+
+#create topics and consumers
+topic:
+bin\windows\kafka-topics.bat --create --topic twitch_chat_enriched --bootstrap-server localhost:9092
+
+consumer:
+bin\windows\kafka-console-consumer.bat --topic twitch_chat_enriched --from-beginning --bootstrap-server localhost:9092

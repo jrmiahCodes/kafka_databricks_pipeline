@@ -1,0 +1,20 @@
+-- Bronze landed
+SELECT COUNT(*) FROM workspace.twitch_pipeline_bronze.twitch_chat;
+
+-- How many parsed OK vs errors
+SELECT parse_status, COUNT(*)
+FROM workspace.twitch_pipeline_bronze.twitch_chat
+GROUP BY parse_status;
+
+-- Silver landed
+SELECT COUNT(*) FROM workspace.twitch_pipeline_silver.twitch_chat;
+
+
+
+“Why didn’t you parse in Bronze?”
+
+“Why foreachBatch instead of writeStream?”
+
+“How do you guarantee idempotency?”
+
+“What breaks if this scales to 10x?”
