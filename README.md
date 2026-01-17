@@ -1,12 +1,15 @@
 # Twitch Chat Streaming Analytics Pipeline
 
-## Overview
+![Architecture Diagram](docs/data_architecture.png)
+![Databricks Dashboard](docs/twitch_databricks_dashboard.png)
+
+## 📖 Overview
 This project implements an end-to-end **real-time data pipeline** for ingesting, processing, and analyzing Twitch chat messages using a modern lakehouse architecture.
 
 The pipeline demonstrates:
-- Kafka-based streaming ingestion
+- Twitch chat ingestion via Kafka
 - Spark Structured Streaming with `foreachBatch`
-- Bronze / Silver data contracts
+- Medallion architecture (Bronze -> Silver -> Gold)
 - dbt-based testing and Gold modeling
 - Databricks-native orchestration and dashboards
 
@@ -15,7 +18,7 @@ I've showcased SQL and data modeling in other projects, the Databricks dashboard
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 Kafka → Spark Structured Streaming → Delta Lake (Bronze/Silver)
 → dbt (Gold models + tests)
 → Databricks Dashboards
@@ -32,27 +35,24 @@ Kafka → Spark Structured Streaming → Delta Lake (Bronze/Silver)
 ## Data Layers
 
 ### Bronze: Raw Ingestion
+
+The Bronze layer stores the raw, immutable Kafka event log.
+
 - One row per Kafka message
-- Append-only Delta table
-- Stores raw JSON payload
-- Tracks:
-  - topic
-  - partition
-  - offset
-  - ingest timestamp
-  - parse_status (`OK` / `PARSE_ERROR`)
-  - parse_error message
+- Delta table designed for lossless ingestion and replayability
+- Each record is uniquely identified by (topic, partition, offset)
+- Stores the raw JSON payload exactly as received
 
-Bronze guarantees **lossless ingestion** and **replayability**.
+In addition to the raw payload, Bronze tracks operational metadata:
 
-Bronze stores the raw, immutable Kafka event log.
-Each Kafka message is represented once, identified by (topic, partition, offset).
+- ingest_ts
+- parse_status (OK / PARSE_ERROR)
+- parse_error (nullable)
 
 Data is ingested in an append-first manner, with idempotent MERGE semantics used to:
 
-  - Prevent duplicate inserts during streaming retries
-
-  - Annotate records with operational metadata (parse_status, parse_error)
+- Prevent duplicate inserts during Spark streaming retries
+- Safely annotate records with parsing outcomes
 
 The raw payload itself is never modified after ingestion.
 ---
@@ -85,7 +85,16 @@ Examples:
 Gold models are optimized for **dashboarding and BI consumption**.
 
 ---
+## How to Run (High-Level)
 
+- Provision Kafka (local or managed)
+- Start Python producer to ingest Twitch chat
+- Run Spark Structured Streaming job
+- Bronze/Silver tables populated via idempotent MERGE
+- Downstream Gold transformations run via dbt
+- Unity Catalog manages governance, lineage, and access
+
+---
 ## Data Quality & Contracts
 
 Data quality is enforced at multiple layers:
@@ -109,8 +118,11 @@ Data quality is enforced at multiple layers:
 - dbt models are executed as a **Databricks Job**
 - dbt project is stored in a **Git-backed Databricks Repo**
 - dbt commands:
+  ```bash
+  dbt deps
   dbt run
   dbt test
+  ```
 
 ## Documentation & Lineage
 
@@ -118,7 +130,9 @@ Data quality is enforced at multiple layers:
 - Unity Catalog tracks physical lineage and table usage
 - A Github Actions workflow was setup to deploy the dbt docs as a gh-page and merge to main branch on every commit.
   - This allows you to view always updated dbt docs and saves time in the long run by automating this process.
- 
+
+---
+
 ## Key Learnings
 
 - Streaming pipelines require explicit idempotency handling
@@ -139,9 +153,25 @@ Data quality is enforced at multiple layers:
 ## Future Improvements
 
 **Quite a few future improvements and ideas having worked through this project:**
-  - Using a python consumer isn't the best for throughput, 
+  - Using a python consumer isn't the best for throughput, in the future I'd rather ingest the kafka json as is into the bronze layer,
+    keep it as a raw source of truth and do the enrichment process purely in the silver layer. I ended up doing more enrichment during the silver
+    layer with Spark but the python consumer to analyze sentiment with vaderSentiment was slow and it wasn't very accurate. It was nice to learn
+    how to use Kafka topics however. If a Kafka connect source is permitted that would be better for producing but in this case no Kafka Source connector
+    existed for Twitch Chat.
+ - The sentiment analyzer didn't do a great job at predicting sentiment based on me reviewing the scores versus what the message entailed. Twitch
+   lingo is nuanced and subtle and I would find a better way to analyze sentiment in the future.
+ - Instead of doing enrichment during the batch ingestion process, I think better and more in line with medallion architecture is to leave
+   the enrichments to a dbt model in the silver layer. Though utilizing Spark in this way was educational and has its purpose. Separating it
+   would create a better separation of layers looking back on it.
+ - Based on what channel you want to analyze, you would have to create a detailed list of emotes that channel has enabled whether through 7tv or
+   BetterTTV. That would enable emote analytics to function accurately..I laid the groundwork to do that with the emote_token list, that's
+   something to customize further based on the channel chats you'd want to ingest. 
 
 
 ## Author
 
 Built by Jeremiah Garcia as a portfolio project focused on real-time data engineering, Kafka with Spark streaming ingestion and lakehouse architecture.
+
+## 🛡️ License
+
+This project is licensed under the [MIT License](LICENSE). You are free to use, modify, and share this project with proper attribution.
