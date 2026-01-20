@@ -1,0 +1,84 @@
+def _shannon_entropy(s):
+    if s is None or len(s) == 0:
+        return 0.0
+    freq = {}
+    for ch in s:
+        freq[ch] = freq.get(ch, 0) + 1
+    entropy = 0.0
+    ln = float(len(s))
+    for v in freq.values():
+        p = v / ln
+        entropy -= p * math.log2(p)
+    return float(entropy)
+
+def _repeat_char_ratio(s):
+    if s is None or len(s) == 0:
+        return 0.0
+    max_run = 1
+    run = 1
+    prev = s[0]
+    for ch in s[1:]:
+        if ch == prev:
+            run += 1
+            if run > max_run:
+                max_run = run
+        else:
+            run = 1
+            prev = ch
+    return float(max_run) / float(len(s))
+
+def _alpha_ratio(s):
+    if s is None or len(s) == 0:
+        return 0.0
+    alpha = sum(1 for ch in s if ch.isalpha())
+    return float(alpha) / float(len(s))
+
+# Sample emote list (expand as needed)
+_EMOTE_LIST = {
+    "Kappa":  -0.2,
+    "PogChamp": 0.8,
+    "OMEGALUL": 0.7,
+    "LUL": 0.6,
+    "Kreygasm": 0.7,
+    "4Head": 0.1,
+    "FeelsBadMan": -0.6,
+    "FeelsGoodMan": 0.6
+}
+EMOTE_SET = set(_EMOTE_LIST.keys())
+EMOTE_SENTIMENT = _EMOTE_LIST
+
+def _emote_tokens(message):
+    if message is None:
+        return []
+    # split on whitespace, strip punctuation
+    tokens = [re.sub(r'^[^\w]+|[^\w]+$', '', t) for t in message.split()]
+    tokens = [t for t in tokens if t != ""]
+    return tokens
+
+def _is_emote_only(message):
+    tokens = _emote_tokens(message)
+    if not tokens:
+        return False
+    for t in tokens:
+        if t not in EMOTE_SET:
+            return False
+    return True
+
+def _emote_count(message):
+    tokens = _emote_tokens(message)
+    return sum(1 for t in tokens if t in EMOTE_SET)
+
+def _emote_sentiment_score(message):
+    tokens = _emote_tokens(message)
+    score = 0.0
+    for t in tokens:
+        if t in EMOTE_SENTIMENT:
+            score += EMOTE_SENTIMENT[t]
+    return float(score)
+
+entropy_udf = udf(_shannon_entropy, DoubleType())
+repeat_char_ratio_udf = udf(_repeat_char_ratio, DoubleType())
+alpha_ratio_udf = udf(_alpha_ratio, DoubleType())
+is_emote_only_udf = udf(_is_emote_only, StringType())  # will cast to boolean later
+emote_count_udf = udf(_emote_count, IntegerType())
+emote_sentiment_udf = udf(_emote_sentiment_score, DoubleType())
