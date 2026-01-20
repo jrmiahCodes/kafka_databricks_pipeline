@@ -140,7 +140,7 @@ Data quality is enforced at multiple layers:
 - Intensive actions inside foreachBatch can trigger replays
   - Use of .cache()/.persist() in the batch prevents redundant reprocessing  
    
-- dbt integrates cleanly with Databricks for testing and modeling
+- The importance of managing throughput and processing plus separation of layers for production scale.
 
 - Running Kafka locally was a huge pain fraught with a ton of debugging.
   - This elucidated to me the advantage of managed Kafka systems like Confluent Cloud for production
@@ -148,6 +148,7 @@ Data quality is enforced at multiple layers:
 ## 🔮 Future Improvements
 
 **Quite a few future improvements and ideas having worked through this project:**
+  - Partition by ingestion date and z-order on kafka keys for future ingestion, current ingestion is not optimized as batch scales.
   - Using a python consumer isn't the best for throughput, in the future I'd rather ingest the kafka json as is into the bronze layer,
     keep it as a raw source of truth and do the enrichment process purely in the silver layer. I ended up doing more enrichment during the silver
     layer with Spark anyway, those 2 enrichment processes could have been consolidated. If a Kafka connect source is permitted that would be better
