@@ -16,6 +16,8 @@ The pipeline demonstrates:
 The primary goal of this project is to showcase **streaming ingestion correctness, data contracts, governance and analytical modeling**, rather than purely batch ETL.
 This project intentionally prioritizes streaming ingestion and Kafka correctness over complex BI modeling.
 
+**Some feature logic is implemented with Python UDFs for experimentation; in production these would be rewritten using native Spark SQL or Scala UDFs for performance.**
+
 ---
 
 ## 🏗️ Architecture
