@@ -4,3 +4,8 @@ dbt_packages/
 logs/
 .vscode/
 */.env
+seeds/
+snapshots/
+tests/
+macros/
+analyses/
