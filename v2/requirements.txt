@@ -7,5 +7,8 @@
 # Install project package so imports like `streaming.*` and `producer.*` resolve.
 -e .
 
-# Kafka producer client used by v2/src/producer/twitch_producer.py
+# Kafka protocol client used by v2/src/producer/twitch_producer.py.
+# Works with Confluent Cloud when SASL env settings are configured
+# (KAFKA_SECURITY_PROTOCOL, KAFKA_SASL_MECHANISM, API_KEY, API_SECRET).
+# Note: `confluent-kafka` is an alternative client, but not required here.
 kafka-python>=2.0.2,<3.0.0
