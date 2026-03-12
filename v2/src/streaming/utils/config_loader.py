@@ -38,7 +38,7 @@ class StreamingJobConfig:
         options = {
             "kafka.bootstrap.servers": self.kafka_bootstrap_servers,
             "subscribe": self.kafka_raw_topic,
-            "startingOffsets": "latest",
+            "startingOffsets": "earliest",
         }
         if self.kafka_sasl_enabled():
             options.update(
