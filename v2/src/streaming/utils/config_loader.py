@@ -30,10 +30,10 @@ class StreamingJobConfig:
         username = self.api_key.replace("\\", "\\\\").replace('"', '\\"')
         password = self.api_secret.replace("\\", "\\\\").replace('"', '\\"')
         return (
-            "org.apache.kafka.common.security.plain.PlainLoginModule required "
+            "kafkashaded.org.apache.kafka.common.security.plain.PlainLoginModule required "
             f'username="{username}" password="{password}";'
         )
-
+    
     def kafka_read_options(self) -> dict[str, str]:
         options = {
             "kafka.bootstrap.servers": self.kafka_bootstrap_servers,
