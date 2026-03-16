@@ -14,6 +14,7 @@ def build_feature_dataframe(spark: Any, cfg: StreamingJobConfig) -> Any:
     Notes:
     - This job assumes `silver_parsed_table` is already contract-valid and deduplicated on `event_id`.
     - No dedupe/merge logic is implemented here by design (handled upstream in `silver_parse`).
+    - Output is intentionally narrow: `event_id` + derived feature columns only.
     - Features are cheap heuristics for moderation support, engagement summaries, and downstream Gold metrics.
     - Heavier ML/LLM scoring (including true emote semantics) is intentionally deferred.
     """
@@ -47,18 +48,6 @@ def build_feature_dataframe(spark: Any, cfg: StreamingJobConfig) -> Any:
 
     return silver.select(
         "event_id",
-        "source_topic",
-        "source_partition",
-        "source_offset",
-        "event_ts",
-        "bronze_ingestion_ts",
-        "silver_processed_ts",
-        "channel",
-        "chatter_id",
-        "message_text",
-        "message_text_normalized",
-        "message_length",
-        "source_platform",
         token_count.alias("token_count"),
         alpha_char_count.alias("alpha_char_count"),
         numeric_char_count.alias("numeric_char_count"),
