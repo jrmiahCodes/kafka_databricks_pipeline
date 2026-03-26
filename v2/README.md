@@ -152,7 +152,7 @@ The benchmark and cost analysis work in this project is intended to answer quest
 - how measured runtime behavior maps to Databricks and cloud cost inputs
 - how cost per million messages changes under different workload patterns
 
-The supporting cost analysis is documented in [`docs/finops_report.md`](docs/finops_report.md).
+The supporting cost analysis is documented in [`docs/finops_report.md`](docs/finops_report.md). A measured baseline replay (`v2_baseline_backlog_2026_03_16`) processed `7006` Bronze rows into `7005` valid parsed rows, `7005` feature rows, and `1` DLQ row. `system.billing.usage` attributed `0.3465 DBU` of dedicated Jobs compute across the three streaming stages, with the main finding that cluster startup and orchestration overhead dominated elapsed time at this workload.
 
 ## Reliability and Stress Testing
 
