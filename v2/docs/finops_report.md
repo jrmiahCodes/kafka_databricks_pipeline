@@ -76,6 +76,7 @@ Likely hotspots include:
 - high-volume string normalization in `silver_parse`
 - minute-level operational and engagement rollups downstream in dbt
 - replay windows or bursty workloads that compress more work into fewer batches
+- SQL warehouse time consumed by dbt serving-layer builds, ad hoc exploration, and dashboard queries
 
 Mitigation strategy:
 
@@ -84,7 +85,49 @@ Mitigation strategy:
 - reuse intermediate expressions where possible
 - measure batch shape changes before and after feature additions
 
-## 6) Cost per Million Messages Processed
+## 6) Serving-Layer SQL Warehouse Cost Awareness
+
+The Gold and serving-layer dbt models are lightweight in code volume, but they can still consume noticeable cost when run on a SQL warehouse.
+
+Practical points:
+
+- `dbt build` runtime is not the only cost driver; warehouse startup time, auto-resume behavior, and repeated exploratory queries can materially add to usage.
+- SQL warehouses can start automatically when a query runs, a scheduled job executes, or a dashboard opens.
+- A small serving-layer model set is still billed on the warehouse SKU in use, so warehouse size and auto-stop settings matter.
+- For this reason, serving-layer cost should be reviewed alongside streaming job cost rather than assumed to be negligible.
+
+Repository guidance:
+
+- Track dbt build wall-clock time as an engineering signal.
+- Review SQL warehouse billable usage with `system.billing.usage` and `system.billing.list_prices`.
+- Prefer right-sized warehouses and aggressive auto-stop for portfolio/demo environments.
+- Avoid conflating stakeholder-facing Gold models with always-on BI serving requirements when evaluating cost.
+
+## 7) Cost-Aware Table Exploration in Dev
+
+Exploratory querying in a Databricks trial or paid workspace is not free just because it is ad hoc. Queries against Gold tables, Silver tables, and billing system tables still run on billable compute.
+
+Practical dev-mode guidance:
+
+- Use the smallest practical SQL warehouse for exploratory work.
+- Configure aggressive auto-stop for dev warehouses.
+- Separate exploratory querying from scheduled serving-model builds so ad hoc analysis does not blur with pipeline runtime.
+- Batch investigative questions into one focused session instead of repeatedly waking the warehouse for many short checks.
+- Prefer narrow projections, explicit filters, and bounded time windows over `select *` scans.
+- Start with sampled rows, metadata checks, and limited aggregates before escalating to wide reconciliations.
+- Reuse query history and query profile to inspect expensive queries before rerunning modified versions.
+- Use account budgets and serverless budget policies so dev exploration can be attributed and reviewed separately from scheduled workloads.
+
+Examples of cheaper-first habits:
+
+- filter by `run_id`, date range, or partition window before reconciling row counts
+- inspect only required columns for reconciliation
+- compare minute/day aggregates before doing event-level joins
+- export or save a small result set for repeated inspection instead of re-running the same warehouse query many times
+
+This repository treats exploratory querying as a legitimate part of engineering work, but one that should be intentionally bounded in dev environments.
+
+## 8) Cost per Million Messages Processed
 
 A practical portfolio KPI is unit economics at message scale.
 
@@ -105,7 +148,18 @@ Interpretation guidance:
 - compare baseline versus stress-test scenarios
 - pair cost with DLQ rate, freshness, and throughput so cost reductions do not hide quality regressions
 
-## 7) Native Spark Expressions vs Python UDF Cost Impact
+## 9) Free Edition vs Free Trial Cost Caveat
+
+It is important to distinguish two Databricks entry paths:
+
+- Free Edition: no-cost, quota-limited, serverless-only environment intended for learning and experimentation
+- Free trial: full-platform evaluation account with time-boxed usage credits
+
+In Free Edition, serverless usage is constrained by platform quotas rather than billed against trial credits. In a free trial or paid account, serverless jobs and SQL warehouses consume billable usage units that draw down credits or incur cost.
+
+This matters for portfolio benchmarking because exploratory SQL, dashboard refreshes, and serving-layer `dbt build` activity may consume trial credits even when the streaming jobs themselves appear modest.
+
+## 10) Native Spark Expressions vs Python UDF Cost Impact
 
 Native Spark expressions are preferred in this pipeline for cost and performance reasons:
 
@@ -116,7 +170,7 @@ Native Spark expressions are preferred in this pipeline for cost and performance
 
 Python UDFs are reserved for cases without practical native equivalents. If introduced, they should be measured with before-and-after cost and latency comparisons.
 
-## 8) Practical Cost-Control Recommendations
+## 11) Practical Cost-Control Recommendations
 
 1. Enforce cluster policies for all scheduled jobs.
 2. Use environment-specific schedules; avoid production cadence in dev.
@@ -125,8 +179,10 @@ Python UDFs are reserved for cases without practical native equivalents. If intr
 5. Prefer incremental dbt materializations where semantics allow.
 6. Tag runs consistently by pipeline, environment, owner, and benchmark scenario.
 7. Track cost and reliability together using unit economics plus freshness and DLQ indicators.
+8. Set SQL warehouse auto-stop aggressively in trial/demo environments and avoid leaving exploratory warehouses running.
+9. Keep a dedicated dev exploration warehouse so ad hoc SQL can be measured separately from scheduled jobs and dbt builds.
 
-## 9) What to Add Once Benchmark Numbers Are Finalized
+## 12) What to Add Once Benchmark Numbers Are Finalized
 
 When measured numbers are ready, expand this report with:
 

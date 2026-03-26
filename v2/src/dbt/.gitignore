@@ -1,7 +1,6 @@
 # dbt generated artifacts
 logs/
 target/
-dbt_packages/
 
 # local dbt profiles
 profiles.yml

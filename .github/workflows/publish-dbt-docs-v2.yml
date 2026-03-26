@@ -35,8 +35,6 @@ jobs:
           cache-dependency-path: |
             v2/pyproject.toml
             v2/requirements-dev.txt
-            v2/src/dbt/packages.yml
-            v2/src/dbt/package-lock.yml
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
@@ -58,10 +56,6 @@ jobs:
                 path: ":memory:"
                 threads: 1
           EOF
-
-      - name: Install dbt packages
-        working-directory: v2/src/dbt
-        run: dbt deps --profiles-dir "${RUNNER_TEMP}/dbt-profile"
 
       - name: Generate dbt docs
         working-directory: v2/src/dbt

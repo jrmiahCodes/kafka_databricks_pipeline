@@ -11,7 +11,6 @@ snapshot-paths: ["snapshots"]
 
 clean-targets:
   - "target"
-  - "dbt_packages"
 
 models:
   twitch_chat_pipeline_v2:
