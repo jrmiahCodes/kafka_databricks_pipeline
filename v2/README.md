@@ -15,7 +15,7 @@ The goal of v2 is not just to preserve the end-to-end flow from v1. It is to mak
 
 ## Key Artifacts
 
-- [Architecture diagram](docs/architecture.md)
+- ![Architecture diagram](docs/twitch_pipeline_diagram_v2.png)
 - [Data contract](contracts/data_contracts.yaml)
 - [FinOps and benchmark report](docs/finops_report.md)
 
